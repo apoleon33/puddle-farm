@@ -39,3 +39,7 @@ export interface RatingChartProps {
   latest_rating: number;
   total_games: number;
 }
+
+export interface ActivityChartProps {
+  player_id: bigint;
+}

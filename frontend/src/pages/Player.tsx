@@ -39,6 +39,7 @@ import { JSONParse } from "../utils/JSONParse";
 import { groupMatches } from "../utils/Player";
 import { StorageUtils } from "./../utils/Storage";
 import { Utils } from "./../utils/Utils";
+import ActivityChart from "../components/ActivityChart";
 
 const Player = () => {
   const theme = useTheme();
@@ -861,6 +862,11 @@ const Player = () => {
                 <hr style={{ marginTop: 10 }} />
               </>
             ) : null}
+          </Box>
+
+          {/* Player recent activity */}
+          <Box>
+            <ActivityChart player_id={player_id_checked} />
           </Box>
         </Box>
       </Box>
