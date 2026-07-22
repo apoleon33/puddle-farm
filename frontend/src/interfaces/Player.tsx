@@ -46,4 +46,6 @@ export interface ActivityChartProps {
 
 export interface SingleActivityDotProps {
   key: string;
+  visible?: boolean;
+  date: Date;
 }
