@@ -305,11 +305,13 @@ function PlayerSidebar({
   avatar,
   comment,
   onLinkClick,
+  char_short,
 }: {
   player: PlayerResponse | null;
   avatar: string | null;
   comment: string | null;
   onLinkClick: LinkClickHandler;
+  char_short: string | undefined;
 }) {
   return (
     <Box
@@ -420,7 +422,7 @@ function PlayerSidebar({
       <Box sx={{ gridArea: { xs: "sidebar", lg: "unset" } }}>
         {player && !isEmptyPlayer(player) ? (
             <>
-              <ActivityChart/>
+              <ActivityChart player_id={player.id} char_short={char_short}/>
             </>
         ) : null}
       </Box>
@@ -590,6 +592,7 @@ const Player = () => {
           avatar={avatar}
           comment={comment}
           onLinkClick={onLinkClick}
+          char_short={char_short}
         />
       </Box>
       <SyncErrorDialog syncError={syncError} onClose={clearSyncError} />

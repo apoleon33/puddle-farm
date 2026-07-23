@@ -41,10 +41,7 @@ export interface RatingChartProps {
 }
 
 export interface ActivityChartProps {
+  player_id: string;
+  char_short: string | undefined;
 }
 
-export interface SingleActivityDotProps {
-  key: string;
-  visible?: boolean;
-  date: Date;
-}
