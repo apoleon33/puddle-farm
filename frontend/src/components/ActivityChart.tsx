@@ -3,7 +3,7 @@ import {ActivityChartProps, SingleActivityDotProps} from "../interfaces/Player";
 
 // Greatly inspired by https://codepen.io/ire/pen/Legmwo/
 
-const ActivityChart = ({player_id}: ActivityChartProps) => {
+const ActivityChart = ({}: ActivityChartProps) => {
     const cols = 12;
     const rows = 7;
     const total = cols * rows;

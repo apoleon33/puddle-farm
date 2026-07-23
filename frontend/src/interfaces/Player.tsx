@@ -41,7 +41,6 @@ export interface RatingChartProps {
 }
 
 export interface ActivityChartProps {
-  player_id: bigint;
 }
 
 export interface SingleActivityDotProps {
