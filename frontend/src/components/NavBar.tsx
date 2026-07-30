@@ -18,10 +18,12 @@ import {
   type MouseEvent,
   type SetStateAction,
   useEffect,
+  useMemo,
   useState,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { JSONParse } from "../utils/JSONParse";
+import { Link } from "react-router-dom";
+import { useCharacterNames } from "../hooks/useCharacterNames";
+import { useSearchNavigation } from "../hooks/useSearchNavigation";
 import { StorageUtils } from "../utils/Storage";
 
 interface Page {
@@ -42,12 +44,8 @@ const pages: Page[] = [
   { name: "Stats", link: "./stats" },
 ];
 
-function resetCharacters() {
-  pages[2].list = [];
-}
-
 function NavBar() {
-  const navigate = useNavigate();
+  const navigateToSearch = useSearchNavigation();
 
   const [anchorElNav, setAnchorElNav] = useState<HTMLElement | null>(null);
 
@@ -55,62 +53,48 @@ function NavBar() {
     null,
   );
 
-  const [searchString, setSearchString] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
-  const [_characters, setCharacters] = useState([]);
+  const characterNames = useCharacterNames();
+
+  const navPages = useMemo(() => {
+    const characterList = characterNames
+      ? Object.entries(characterNames).map(([charShort, charLong]) => ({
+          key: charShort,
+          name: charLong,
+          link: `/top/${charShort}`,
+        }))
+      : [];
+    return pages.map((page) =>
+      page.name === "Characters" ? { ...page, list: characterList } : page,
+    );
+  }, [characterNames]);
 
   const [healthMessage, setHealthMessage] = useState<string | null>(null);
 
   const handleSearchChange = (event: {
     target: { value: SetStateAction<string> };
   }) => {
-    setSearchString(event.target.value);
+    setSearchQuery(event.target.value);
   };
 
   const handleSearchKeyDown = (event: { key: string }) => {
     if (event.key === "Enter") {
-      navigate(`/search/${searchString}`);
+      navigateToSearch(searchQuery, false);
     }
   };
 
   const handleSearchClick = () => {
-    navigate(`/search/${searchString}`);
+    navigateToSearch(searchQuery, false);
   };
 
   const handleExactSearchClick = () => {
-    navigate(`/search/${searchString}/exact`);
+    navigateToSearch(searchQuery, true);
   };
 
   useEffect(() => {
-    const fetchCharacterList = async () => {
-      try {
-        const response = await fetch(`${API_ENDPOINT}/characters`);
-
-        const _result = await response.text().then((body) => {
-          const parsed = JSONParse(body);
-
-          resetCharacters();
-          for (const key in parsed) {
-            if (pages[2].list) {
-              pages[2].list.push({
-                key: key,
-                name: parsed[key][1],
-                link: `/top/${parsed[key][0]}`,
-              });
-            }
-          }
-
-          setCharacters(parsed);
-
-          return parsed;
-        });
-      } catch (error) {
-        console.error("Error fetching character list:", error);
-      }
-    };
-
     const checkHealth = async () => {
       try {
         const response = await fetch(`${API_ENDPOINT}/health`);
@@ -132,7 +116,6 @@ function NavBar() {
       }
     };
 
-    fetchCharacterList();
     checkHealth();
 
     // Read preferences
@@ -206,7 +189,7 @@ function NavBar() {
               >
                 {" "}
                 {/* Mobile view - menu */}
-                {pages.map((page) =>
+                {navPages.map((page) =>
                   //If the page has a 'list' attribute that is an array, render a submenu
                   "list" in page ? (
                     <Box
@@ -251,7 +234,7 @@ function NavBar() {
                 variant="outlined"
                 label="Search..."
                 style={{ marginTop: 10 }}
-                value={searchString}
+                value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeyDown}
               />
@@ -273,7 +256,7 @@ function NavBar() {
             </Box>
             <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
               {/* Desktop view */}
-              {pages.map((page) =>
+              {navPages.map((page) =>
                 //If the page has a 'list' attribute that is an array, render a submenu
                 "list" in page ? (
                   <Box key={page.name}>
@@ -363,7 +346,7 @@ function NavBar() {
                 variant="outlined"
                 label="Search..."
                 style={{ marginTop: 10 }}
-                value={searchString}
+                value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeyDown}
               />
