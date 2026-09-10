@@ -2,7 +2,6 @@ import {Box, Tooltip, Typography} from "@mui/material";
 import {ActivityChartProps} from "../interfaces/Player";
 import {useEffect, useState} from "react";
 import {API_ENDPOINT} from "../utils/playerApi";
-import {Utils} from "../utils/Utils";
 
 interface Last100GamesProps {
     result_win: boolean;
@@ -14,6 +13,7 @@ interface SingleActivityDotProps {
     visible?: boolean;
     date: Date;
     games: Last100GamesProps[];
+    player_id: string;
 }
 
 
@@ -24,55 +24,46 @@ const ActivityChart = ({player_id, char_short}: ActivityChartProps) => {
     const gap = 3;
 
     const today = new Date();
+    const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
     const displayedPreviousWeeks = 14;
     const allFullColumns = 7 * displayedPreviousWeeks;
 
-    const isSameDate = (date1: Date, date2: Date) => date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()
-    ;
+
+    const earliestDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 7 * displayedPreviousWeeks));
+    const earliestDateUTC = Date.UTC(earliestDate.getFullYear(), earliestDate.getMonth(), earliestDate.getDate());
+
+    const isSameDate = (date1: Date, date2: Date) => date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
 
     useEffect(() => {
-        // /player/{player_id}/{char_id}/history
+
+        setHistory([]);
         const fetchLast100Games = async () => {
+
             let hiistory: Last100GamesProps[] = history;
-            for (let i = 100; i < 1500; i+= 100) {
-                const last100GamesResponse = await fetch(
+                const lastGamesResponse = await fetch(
                     API_ENDPOINT +
                     "/player/" +
                     player_id +
                     "/" +
                     char_short +
-                    "/history?count=" +
-                    i +
-                    `&offset=${i - 100}`
+                    "/history?from=" +
+                    earliestDateUTC+
+                    `&to=${todayUTC}&count=2000`
                 )
 
-                console.log(await fetch(
-                    API_ENDPOINT +
-                    "/player/" +
-                    player_id +
-                    "/" +
-                    char_short +
-                    "/history?count=" +
-                    100 +
-                    `&offset=${i-100}`
-                ))
+                if (lastGamesResponse.status === 200) {
+                    const lastGamesResult = await lastGamesResponse.json();
 
-
-                if (last100GamesResponse.status === 200) {
-                    const last100GamesResult = await last100GamesResponse.json();
-                    // console.log(last100GamesResult);
-                    hiistory = hiistory.concat(last100GamesResult.history.map((game: any) => ({
+                    hiistory = hiistory.concat(lastGamesResult.history.map((game: any) => ({
                         result_win: game.result_win,
                         timestamp: new Date(game.timestamp),
-                    })));
-                }
-            }
+                    })));}
+
             setHistory(hiistory);
         }
 
         fetchLast100Games();
-        console.log(history);
     }, [player_id, char_short, API_ENDPOINT]);
 
     return (
@@ -110,6 +101,7 @@ const ActivityChart = ({player_id, char_short}: ActivityChartProps) => {
                         <SingleActivityDot key={`past-${idx}`} visible={true}
                                            date={new Date(new Date().setDate(today.getDate() - (today.getDay() - (idx - allFullColumns))))}
                                            games={history.filter(game => isSameDate(new Date(new Date().setDate(today.getDate() - (today.getDay() - (idx - allFullColumns)))), game.timestamp))}
+                                           player_id={player_id}
                         ></SingleActivityDot>
                     ))}
                 </Box>
@@ -125,12 +117,14 @@ const ActivityChart = ({player_id, char_short}: ActivityChartProps) => {
                             <SingleActivityDot key={`current-${idx}`} visible={true}
                                                date={new Date(new Date().setDate(today.getDate() - (today.getDay() - idx)))}
                                                games={history.filter(game => isSameDate(new Date(new Date().setDate(today.getDate() - (today.getDay() - idx))), game.timestamp))}
+                                               player_id={player_id}
                             ></SingleActivityDot>))
                     }
                     {
                         Array.from({length: 6 - today.getDay()}).map((_, idx) => (
                             <SingleActivityDot key={`future-${idx}`} visible={false} date={today}
                                                games={[]}
+                                               player_id={player_id}
                             ></SingleActivityDot>))
                     }
                 </Box>
@@ -141,7 +135,7 @@ const ActivityChart = ({player_id, char_short}: ActivityChartProps) => {
     );
 };
 
-const SingleActivityDot = ({key, visible, date, games}: SingleActivityDotProps) => {
+const SingleActivityDot = ({key, visible, date, games, player_id}: SingleActivityDotProps) => {
     const [winrate, setWinrate] = useState<number>(-1);
     const TIERS = [
         {label: "S", color: "#087F23", minWR: 65},
@@ -158,14 +152,14 @@ const SingleActivityDot = ({key, visible, date, games}: SingleActivityDotProps) 
         } else {
             setWinrate(-14);
         }
-    }, [visible, date, games]);
+    }, [visible, date, games, player_id]);
 
     return (
         <Tooltip title={`${date.toDateString()} - ${games.length} games, ${winrate.toFixed(2)}% WR`}>
             <Box
                 key={key}
                 sx={{
-                    bgcolor: TIERS.find((tier)=> tier.minWR<= winrate)?.color || "#3d4345",
+                    bgcolor: TIERS.find((tier) => tier.minWR <= winrate)?.color || "#3d4345",
                     width: '10px',
                     height: '10px',
                     borderRadius: '2px',
@@ -179,3 +173,4 @@ const SingleActivityDot = ({key, visible, date, games}: SingleActivityDotProps) 
 
 
 export default ActivityChart;
+
