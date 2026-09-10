@@ -14,7 +14,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tag } from "./../components/Tag";
-import { JSONParse } from "../utils/JSONParse";
+import { JSONParse } from "../utils/jsonParse";
 import { Utils } from "../utils/Utils";
 
 const Legend = () => {
@@ -129,7 +129,7 @@ const Legend = () => {
           </Typography>
         </Box>
       </AppBar>
-      <Box sx={{ m: 3 }}>
+      <Box sx={{ m: { xs: 1, sm: 3 } }}>
         {errorMessage && (
           <Typography color="error" align="center" sx={{ mb: 2 }}>
             {errorMessage}

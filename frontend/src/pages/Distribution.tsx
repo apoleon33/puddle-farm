@@ -241,7 +241,7 @@ const Distribution = () => {
   }, []);
 
   return (
-    <Box sx={{ m: 5, maxWidth: "700px" }}>
+    <Box sx={{ m: { xs: 1, sm: 5 }, maxWidth: "700px" }}>
       {loading ? (
         <CircularProgress
           size={60}
@@ -344,9 +344,7 @@ const Distribution = () => {
                 </TableCell>
                 <TableCell>{threshold.name}</TableCell>
                 <TableCell>
-                  {threshold.rating >= 10000000
-                    ? `${(threshold.rating - 10000000).toLocaleString()} DR`
-                    : `${threshold.rating.toLocaleString()} RP`}
+                  {Utils.formatRankThresholdRating(threshold)}
                 </TableCell>
               </TableRow>
             ))}
